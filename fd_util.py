@@ -35,8 +35,8 @@ def get_inv_fd(X, Y, M):
 	for k in range(0, N):
 		total_x = 0
 		total_y = 0
-		left = (N / 2 - 1) - int(M/2)
-		right = (N / 2) + int(M/2)
+		left = int(N / 2) - 1 - int( M / 2)
+		right = int(N / 2) + int( M / 2)
 		for u in range(left, right):
 			theta = 2 * 3.14159 * u * k / N;
 			cos_value = math.cos(theta)
