@@ -38,6 +38,8 @@ print_img_size(dilation)
 contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 cv2.drawContours(im, contours, -1, (0, 255, 0), 1)
 
+print('contours: ' + str(len(contours)))
+
 stack_img = np.hstack((imgray, imgblur, thres, dilation))
 show_img(stack_img)
 show_img(im)
