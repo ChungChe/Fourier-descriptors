@@ -1,6 +1,5 @@
 import sys
 import math
-import cv2
 # get fourier descriptors
 def get_fd(x, y):
 	if len(x) != len(y):
