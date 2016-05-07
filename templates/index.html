@@ -1,0 +1,31 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title> Fourier Descriptor: {{ title }} </title>
+	</head>
+	<body>
+		<h1> {{ user.nickname }} ! </h1>
+		<form id="form1" method="post" action="/draw_chart">
+				<button type="button" id="press_run">RUN</button>
+			<p>
+		<div id="result"></div>
+		<div id="x_chart" style="height: 400px;"></div>
+		<div id="y_chart" style="height: 400px;"></div>
+		<div id="h_chart" style="height: 400px;"></div>
+		</form>
+	</body>
+		<script src="static/js/jquery.js"></script>
+		<!--
+		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
+		<script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
+		-->
+		<link rel="stylesheet" href="static/css/morris.css">
+		<script src="static/js/raphael-min.js"></script>
+		<script src="static/js/morris.min.js"></script> 
+		<script src="static/js/jquery.datetimepicker.full.min.js"></script>
+		<script src="static/js/gogo.js"></script>
+		<link rel="stylesheet" href="static/css/jquery.datetimepicker.css">
+		<link rel="stylesheet" href="static/css/textinput.css">
+</html>
