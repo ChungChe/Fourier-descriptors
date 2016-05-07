@@ -6,9 +6,15 @@
 	</head>
 	<body>
 		<h1> {{ user.nickname }} ! </h1>
-		<form id="form1" method="post" action="/draw_chart">
+		<p>
+		<select id="my_combobox">
+			{% for curve_id in range(0, 15) -%}
+			<option value="{{ curve_id }}">{{ curve_id }}</option>
+			{% endfor %}
+		</select>
+		<form id="form1" method="post" action="/extract">
 				<button type="button" id="press_run">RUN</button>
-			<p>
+		<p>
 		<div id="result"></div>
 		<div id="x_chart" style="height: 400px;"></div>
 		<div id="y_chart" style="height: 400px;"></div>
@@ -24,8 +30,6 @@
 		<link rel="stylesheet" href="static/css/morris.css">
 		<script src="static/js/raphael-min.js"></script>
 		<script src="static/js/morris.min.js"></script> 
-		<script src="static/js/jquery.datetimepicker.full.min.js"></script>
 		<script src="static/js/gogo.js"></script>
-		<link rel="stylesheet" href="static/css/jquery.datetimepicker.css">
 		<link rel="stylesheet" href="static/css/textinput.css">
 </html>

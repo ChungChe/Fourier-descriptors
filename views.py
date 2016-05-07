@@ -29,8 +29,44 @@ def print_img_size(im):
     result = im.shape
     print('len of im:' + str(len(result)))
     print result[1], result[0]
-def query(start, end, machine_list):
-	return [1, 2, 3]
+
+def extract_contour(contours, index):
+	ret = {}
+	list_of_coord = []
+	for contour_i in contours[index]:
+		coord = {}
+		coord['x'] = str(contour_i[0][0])
+		coord['y'] = str(contour_i[0][1])
+		list_of_coord.append(coord)
+	ret['data'] = list_of_coord
+	return ret
+
+def do_something(index):
+	im = cv2.imread('image/7seg.jpg')
+	imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+	imgblur = cv2.GaussianBlur(imgray, (5, 5), 0)
+	ret, thres = cv2.threshold(imgblur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+	kernel = np.ones((5, 5), np.uint8)
+	dilation = cv2.dilate(thres, kernel, iterations = 2)
+	_, contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+	cv2.drawContours(im, contours, -1, (0, 255, 0), 1)
+	print('hierarchy: ' + str(len(hierarchy[0])))
+	show_1st_level(hierarchy[0])
+	print('contours:' + str(len(contours)))
+	print('contours[0]:' + str(len(contours[0])))
+	print('contours[0][0]:' + str(len(contours[0][0])))
+	print('contours[0][0][0]:' + str(len(contours[0][0][0])))
+	
+	my_dict = extract_contour(contours, index)
+#my_dict = [("contours", contours), ("hierarchy", hierarchy)]
+	# [ [[x y]] [[x y]] ...]
+	# print ith contour's first point
+	#print((contours[0][0][0][0]))
+	# print ith contour's second point
+	#print((contours[0][0][0][1]))
+	return my_dict
+
 
 @app.context_processor
 def utility_processor():
@@ -70,7 +106,6 @@ def get_image():
 	# print ith contour's second point
 	print((contours[0][0][0][1]))
 
-
 	stack_img = np.vstack((imgray1, imgblur1, dilation1, im))
 	# opencv uses BGR but numpy uses RGB, stack_img uses RGB, so we need to convert to BGR again
 	pil_bgr = cv2.cvtColor(stack_img, cv2.COLOR_RGB2BGR)
@@ -83,31 +118,25 @@ def get_image():
 def home(path):
 	print("home")	
 	outputList = []	
-	user = {'nickname': 'CurveGoGo'}
+	user = {'nickname': 'Press run to get all 7-segment display fourier descriptors'}
 	return render_template('index.html', 
 			title = path, 
 			user = user, output = outputList )
 
-@app.route('/draw_chart', methods = ['POST'])
-def draw_chart():
+@app.route('/extract', methods = ['POST'])
+def extract():
 	print("post")	
 	my_json = request.json
-	start = my_json.get('datetime_start')
-	end = my_json.get('datetime_end')
-	machine_list = my_json.get('mlist')
-	outputList = query(start, end, machine_list)
-	my_dict = []
-	print('total result: ' + str(len(outputList)))
-	for element in outputList:
-		my_dict.append(OrderedDict([("datetime", element[2]), ("M" + str(element[0]), format(float(element[1]), '.2f'))]))
-	return jsonify(data=my_dict)
+	idx = my_json.get('index')
+#print('total result: ' + str(len(outputList)))
+#	for element in outputList:
+#		my_dict.append(OrderedDict([("datetime", element[2]), ("M" + str(element[0]), format(float(element[1]), '.2f'))]))
+	my_dict = do_something(int(idx))
+	
+	print('-----------------------------------------')
+	print(my_dict)
+	print('=========================================')
+	return jsonify(my_dict)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
-
-
-
-
-
-
-
