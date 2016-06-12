@@ -7,7 +7,7 @@
 	<body>
 		<h1> {{ user.nickname }} ! </h1>
 		<p>
-		<select id="my_combobox">
+		ith Fourier Descriptors:<select id="my_combobox">
 			{% for curve_id in range(0, 15) -%}
 			<option value="{{ curve_id }}">{{ curve_id }}</option>
 			{% endfor %}
@@ -28,6 +28,8 @@
 		<script src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
 		-->
 		<link rel="stylesheet" href="static/css/morris.css">
+		<script src="//d3js.org/d3.v3.min.js"></script>
+		<script src="static/js/path.js"></script>
 		<script src="static/js/raphael-min.js"></script>
 		<script src="static/js/morris.min.js"></script> 
 		<script src="static/js/gogo.js"></script>

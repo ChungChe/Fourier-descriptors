@@ -12,6 +12,8 @@ import fd_util
 app = Flask(__name__)
 
 app.config['PROPAGATE_EXCEPTIONS'] = True
+
+# what is this?
 def show_1st_level(hierarchy):
 	for i in range(0, len(hierarchy)):
 		if len(hierarchy[i]) != 4:
@@ -30,7 +32,11 @@ def print_img_size(im):
     print('len of im:' + str(len(result)))
     print result[1], result[0]
 
-def extract_contour(contours, index):
+'''
+ return 
+	{ data: [{x: 123, y: 234}, {x: 245, y: 111}, ...] }
+'''
+def contour2json(contours, index):
 	ret = {}
 	list_of_coord = []
 	for contour_i in contours[index]:
@@ -41,7 +47,10 @@ def extract_contour(contours, index):
 	ret['data'] = list_of_coord
 	return ret
 
-def do_something(index):
+''' 
+	input param: index ith contour in 7seg.jpg
+'''
+def extact_contours(index):
 	im = cv2.imread('image/7seg.jpg')
 	imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 	imgblur = cv2.GaussianBlur(imgray, (5, 5), 0)
@@ -53,12 +62,14 @@ def do_something(index):
 	cv2.drawContours(im, contours, -1, (0, 255, 0), 1)
 	print('hierarchy: ' + str(len(hierarchy[0])))
 	show_1st_level(hierarchy[0])
-	print('contours:' + str(len(contours)))
-	print('contours[0]:' + str(len(contours[0])))
-	print('contours[0][0]:' + str(len(contours[0][0])))
-	print('contours[0][0][0]:' + str(len(contours[0][0][0])))
+	print('contours: {}'.format(str(len(contours))))
+	print('contours[{}] : {}'.format(index, str(len(contours[index]))))
+	print('contours[{}][0] : {}'.format(index, str(len(contours[index][0]))))
+	print('contours[{}][0][0] : {}'.format(index, str(len(contours[index][0][0]))))
+#print('contours[0][0]:' + str(len(contours[0][0])))
+#	print('contours[0][0][0]:' + str(len(contours[0][0][0])))
 	
-	my_dict = extract_contour(contours, index)
+	my_dict = contour2json(contours, index)
 #my_dict = [("contours", contours), ("hierarchy", hierarchy)]
 	# [ [[x y]] [[x y]] ...]
 	# print ith contour's first point
@@ -118,7 +129,7 @@ def get_image():
 def home(path):
 	print("home")	
 	outputList = []	
-	user = {'nickname': 'Press run to get all 7-segment display fourier descriptors'}
+	user = {'nickname': 'Press run to get ith 7-segment display fourier descriptors'}
 	return render_template('index.html', 
 			title = path, 
 			user = user, output = outputList )
@@ -128,13 +139,17 @@ def extract():
 	print("post")	
 	my_json = request.json
 	idx = my_json.get('index')
+	print('idx:' + str(idx))
 #print('total result: ' + str(len(outputList)))
 #	for element in outputList:
 #		my_dict.append(OrderedDict([("datetime", element[2]), ("M" + str(element[0]), format(float(element[1]), '.2f'))]))
-	my_dict = do_something(int(idx))
+	my_dict = extact_contours(int(idx))
 	
 	print('-----------------------------------------')
-	print(my_dict)
+#print(my_dict)
+	# write my_dict to file
+	with open('my_dict_debug.json', 'w') as f:
+		json.dump(my_dict, f)
 	print('=========================================')
 	return jsonify(my_dict)
 
