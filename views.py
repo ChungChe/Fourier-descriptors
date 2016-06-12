@@ -13,14 +13,23 @@ app = Flask(__name__)
 
 app.config['PROPAGATE_EXCEPTIONS'] = True
 
-# what is this?
+'''
+ Show 0 - 9 contour indexes
+ hierarchy has 4 elements
+ next contour, previous contour, first child contour, parent contour
+ Real number    9  7  8    6  5  4  1  0  2  3
+ ----------------------------------------------------------------------
+ index		    0  2  3    6  8  9 10 11 13 14
+				|    / \   |          |
+ child          1   4   5  7          12 
+'''
 def show_1st_level(hierarchy):
 	for i in range(0, len(hierarchy)):
 		if len(hierarchy[i]) != 4:
 			continue
-		if hierarchy[i][0] == -1:
-			continue
-		print(i)
+		#if hierarchy[i][0] == -1:
+		#	continue
+		print(i, hierarchy[i][0], hierarchy[i][1], hierarchy[i][2], hierarchy[i][3])
 
 def show_img(im_stack):
     cv2.imshow('image', im_stack)
