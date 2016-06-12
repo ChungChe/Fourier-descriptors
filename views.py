@@ -41,8 +41,8 @@ def contour2json(contours, index):
 	list_of_coord = []
 	for contour_i in contours[index]:
 		coord = {}
-		coord['x'] = str(contour_i[0][0])
-		coord['y'] = str(contour_i[0][1])
+		coord['x'] = int(contour_i[0][0])
+		coord['y'] = int(contour_i[0][1])
 		list_of_coord.append(coord)
 	ret['data'] = list_of_coord
 	return ret
