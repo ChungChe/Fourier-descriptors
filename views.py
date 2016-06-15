@@ -7,7 +7,7 @@ import json
 import sqlite3 as db
 import numpy as np
 import cv2
-import fd_util
+import fd_util as fu
 
 app = Flask(__name__)
 
@@ -48,12 +48,34 @@ def print_img_size(im):
 def contour2json(contours, index):
 	ret = {}
 	list_of_coord = []
+	x_list = []
+	y_list = []
 	for contour_i in contours[index]:
 		coord = {}
-		coord['x'] = int(contour_i[0][0])
-		coord['y'] = int(contour_i[0][1])
+		x = int(contour_i[0][0])
+		y = int(contour_i[0][1])
+		x_list.append(x)
+		y_list.append(y)
+
+		coord['x'] = x
+		coord['y'] = y
 		list_of_coord.append(coord)
+	
 	ret['data'] = list_of_coord
+
+	fd_x, fd_y = fu.get_fd(x_list, y_list)
+	#for i in range(0, len(fd_x)):
+	#	print(i, fd_x[i], fd_y[i])
+	rev_x, rev_y = fu.get_inv_fd(fd_x, fd_y, 21)
+	#print('==============================================')	
+	result_list = []
+	for i in range(0, len(rev_x)):
+		coord = {}
+		coord['x'] = int(rev_x[i])
+		coord['y'] = int(rev_y[i])
+		#print(i, rev_x[i], rev_y[i])
+		result_list.append(coord)
+	ret['final'] = result_list
 	return ret
 
 ''' 
@@ -75,6 +97,13 @@ def extact_contours(index):
 	print('contours[{}] : {}'.format(index, str(len(contours[index]))))
 	print('contours[{}][0] : {}'.format(index, str(len(contours[index][0]))))
 	print('contours[{}][0][0] : {}'.format(index, str(len(contours[index][0][0]))))
+
+	ccc = 0
+	for contour_i in contours:
+			x, y, w, h = cv2.boundingRect(contour_i)
+			print(ccc, x, y, w, h)
+			ccc += 1
+			
 #print('contours[0][0]:' + str(len(contours[0][0])))
 #	print('contours[0][0][0]:' + str(len(contours[0][0][0])))
 	
