@@ -1,5 +1,5 @@
 import sys
-import Image
+from PIL import Image
 sys.path.append('/usr/local/lib/python2.7/site-packages')
 from flask import Flask, render_template, request, jsonify, send_file 
 from collections import OrderedDict
@@ -89,7 +89,9 @@ def extact_contours(index):
 
 	kernel = np.ones((5, 5), np.uint8)
 	dilation = cv2.dilate(thres, kernel, iterations = 2)
-	_, contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+	# open cv 3
+    #_, contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+	contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 	cv2.drawContours(im, contours, -1, (0, 255, 0), 1)
 	print('hierarchy: ' + str(len(hierarchy[0])))
 	show_1st_level(hierarchy[0])
@@ -165,7 +167,7 @@ def get_image():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def home(path):
-	print("home")	
+	print("OpenCV version:" + cv2.__version__)	
 	outputList = []	
 	user = {'nickname': 'Press run to get ith 7-segment display fourier descriptors'}
 	return render_template('index.html', 
