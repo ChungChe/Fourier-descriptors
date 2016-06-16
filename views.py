@@ -96,9 +96,11 @@ def extact_contours(index):
 
 	kernel = np.ones((5, 5), np.uint8)
 	dilation = cv2.dilate(thres, kernel, iterations = 2)
-	# open cv 3
-    #_, contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-	contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+	(cv_version, _, _) = cv2.__version__.split(".")
+	if cv_version == 3:
+		contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+	else:
+		_, contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 	cv2.drawContours(im, contours, -1, (0, 255, 0), 1)
 	print('hierarchy: ' + str(len(hierarchy[0])))
 	show_1st_level(hierarchy[0])
