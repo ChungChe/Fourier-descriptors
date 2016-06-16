@@ -1,6 +1,6 @@
 import sys
 import math
-# get fourier descriptors
+# get fourier descriptors, this function takes a lot of time
 def get_fd(x, y):
 	if len(x) != len(y):
 		print "Error: The length of input x and y should be equal"

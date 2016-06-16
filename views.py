@@ -1,5 +1,5 @@
 import sys
-import Image
+from PIL import Image
 sys.path.append('/usr/local/lib/python2.7/site-packages')
 from flask import Flask, render_template, request, jsonify, send_file 
 from collections import OrderedDict
@@ -8,6 +8,7 @@ import sqlite3 as db
 import numpy as np
 import cv2
 import fd_util as fu
+import time
 
 app = Flask(__name__)
 
@@ -63,10 +64,16 @@ def contour2json(contours, index):
 	
 	ret['data'] = list_of_coord
 
+	start1 = time.clock()	
 	fd_x, fd_y = fu.get_fd(x_list, y_list)
+	end1 = time.clock()
+	print("get_fd takes:"+str(end1-start1))
 	#for i in range(0, len(fd_x)):
 	#	print(i, fd_x[i], fd_y[i])
+	start2 = time.clock()	
 	rev_x, rev_y = fu.get_inv_fd(fd_x, fd_y, 21)
+	end2 = time.clock()
+	print("get_inv_fd takes:"+str(end2-start2))
 	#print('==============================================')	
 	result_list = []
 	for i in range(0, len(rev_x)):
@@ -106,8 +113,10 @@ def extact_contours(index):
 			
 #print('contours[0][0]:' + str(len(contours[0][0])))
 #	print('contours[0][0][0]:' + str(len(contours[0][0][0])))
-	
+	start = time.clock()	
 	my_dict = contour2json(contours, index)
+	end = time.clock()
+	print("contour2json takes:"+str(end-start))
 #my_dict = [("contours", contours), ("hierarchy", hierarchy)]
 	# [ [[x y]] [[x y]] ...]
 	# print ith contour's first point
