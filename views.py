@@ -24,14 +24,34 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 				|    / \   |          |
  child          1   4   5  7          12 
 '''
-def show_1st_level(hierarchy):
+def traverse_top_level(hierarchy, idx, l):
+    if hierarchy[idx][0] != -1:
+        l.append(hierarchy[idx][0])
+        traverse_top_level(hierarchy, hierarchy[idx][0], l)
+        
+
+def show_top_level(hierarchy):
+    # find first non -1 index
+    top_level_idx_list = []
+    first_idx = 0
+    for i in xrange(0, len(hierarchy)):
+        if hierarchy[i][0] != -1:
+            first_idx = i
+            top_level_idx_list.append(first_idx)
+            break
+    traverse_top_level(hierarchy, first_idx, top_level_idx_list)
+    print(top_level_idx_list)
+
+    '''
 	for i in range(0, len(hierarchy)):
 		if len(hierarchy[i]) != 4:
 			continue
+        if hierarchy[i][0] != -1:
+            top_level_idx_list.append(i)
 		#if hierarchy[i][0] == -1:
 		#	continue
 		print(i, hierarchy[i][0], hierarchy[i][1], hierarchy[i][2], hierarchy[i][3])
-
+    '''
 def show_img(im_stack):
     cv2.imshow('image', im_stack)
     cv2.waitKey(0)
@@ -68,7 +88,7 @@ def contour2json(contours, index):
 	fd_x, fd_y = fu.get_fd(x_list, y_list)
 	end1 = time.clock()
 	print("get_fd takes:"+str(end1-start1))
-	#for i in range(0, len(fd_x)):
+	#for i in xrange(0, len(fd_x)):
 	#	print(i, fd_x[i], fd_y[i])
 	start2 = time.clock()	
 	rev_x, rev_y = fu.get_inv_fd(fd_x, fd_y, 21)
@@ -76,7 +96,7 @@ def contour2json(contours, index):
 	print("get_inv_fd takes:"+str(end2-start2))
 	#print('==============================================')	
 	result_list = []
-	for i in range(0, len(rev_x)):
+	for i in xrange(0, len(rev_x)):
 		coord = {}
 		coord['x'] = int(rev_x[i])
 		coord['y'] = int(rev_y[i])
@@ -100,10 +120,10 @@ def extact_contours(index):
 	if cv_version == 3:
 		contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 	else:
-		_, contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+		contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 	cv2.drawContours(im, contours, -1, (0, 255, 0), 1)
 	print('hierarchy: ' + str(len(hierarchy[0])))
-	show_1st_level(hierarchy[0])
+	show_top_level(hierarchy[0])
 	print('contours: {}'.format(str(len(contours))))
 	print('contours[{}] : {}'.format(index, str(len(contours[index]))))
 	print('contours[{}][0] : {}'.format(index, str(len(contours[index][0]))))
@@ -162,7 +182,7 @@ def get_image():
 	_, contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 	cv2.drawContours(im, contours, -1, (0, 255, 0), 1)
 	print('hierarchy: ' + str(len(hierarchy[0])))
-	show_1st_level(hierarchy[0])
+	show_top_level(hierarchy[0])
 	# print ith contour's first point
 	print((contours[0][0][0][0]))
 	# print ith contour's second point
