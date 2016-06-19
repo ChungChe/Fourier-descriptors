@@ -28,7 +28,6 @@ def traverse_top_level(hierarchy, idx, l):
     if hierarchy[idx][0] != -1:
         l.append(hierarchy[idx][0])
         traverse_top_level(hierarchy, hierarchy[idx][0], l)
-        
 
 def show_top_level(hierarchy):
     # find first non -1 index
@@ -42,16 +41,6 @@ def show_top_level(hierarchy):
     traverse_top_level(hierarchy, first_idx, top_level_idx_list)
     print(top_level_idx_list)
 
-    '''
-	for i in range(0, len(hierarchy)):
-		if len(hierarchy[i]) != 4:
-			continue
-        if hierarchy[i][0] != -1:
-            top_level_idx_list.append(i)
-		#if hierarchy[i][0] == -1:
-		#	continue
-		print(i, hierarchy[i][0], hierarchy[i][1], hierarchy[i][2], hierarchy[i][3])
-    '''
 def show_img(im_stack):
     cv2.imshow('image', im_stack)
     cv2.waitKey(0)
