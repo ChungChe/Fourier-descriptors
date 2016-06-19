@@ -4,7 +4,7 @@ class node:
         self.__name = name
         self.__children = []
         self.__parent = 'Root'
-    def get_parent(self):
+    def get_parent_name(self):
         return self.__parent
     def get_name(self):
         return self.__name
@@ -31,7 +31,16 @@ class tree:
 
         if not self.nodes[parent_node_name].child_exists(node_name):
             self.nodes[parent_node_name].add_child(node_name)
+    
+    def get_node(self, node_name):
+        return self.nodes[node_name]
 
+    def get_parent(self, node_name):
+        parent_name = "Root"
+        if node_name != "Root":
+            parent_name = self.nodes[node_name].get_parent_name()
+        return self.nodes[parent_name]
+    
     def dfs(self, current_node_name):
         print(current_node_name)
         for elem in self.nodes[current_node_name].get_children():
@@ -52,22 +61,31 @@ class tree:
         self.__bfs_traverse(bfs_order_list) 
 
 def test():
-    my_tree = tree()
-    my_tree.add_node("node1")
-    my_tree.add_node("node2")
-    my_tree.add_node("node1_1", "node1")
-    my_tree.add_node("node1_2", "node1")
-    my_tree.add_node("node2_1", "node2")
-    my_tree.add_node("node2_2", "node2")
+    t = tree()
+    t.add_node("node1")
+    t.add_node("node2")
+    t.add_node("node1_1", "node1")
+    t.add_node("node1_2", "node1")
+    t.add_node("node2_1", "node2")
+    t.add_node("node2_2", "node2")
 
-    my_tree.dfs("Root")
+    t.dfs("Root")
     print("=======")
-    my_tree.bfs("Root")
+    t.bfs("Root")
 
-    print(my_tree.nodes["node1"].get_parent())
-    print(my_tree.nodes["node1_1"].get_parent())
-    print(my_tree.nodes["node2"].get_parent())
-    print(my_tree.nodes["node2"].get_children())
-    print(my_tree.nodes["node2_1"].get_parent())
+    print(t.nodes["node1"].get_parent_name())
+    print(t.nodes["node1_1"].get_parent_name())
+    print(t.nodes["node2"].get_parent_name())
+    print(t.nodes["node2"].get_children())
+    print(t.nodes["node2_1"].get_parent_name())
+    
+    r = t.get_parent("Root")
+    print("Root's parent: " + r.get_name())
+    r1 = t.get_parent("node2")
+    print("node2's parent: " + r1.get_name())
+    r2 = t.get_parent("node2_1")
+    print("node2_1's parent: " + r2.get_name())
+    n = t.get_node("node1")
+    print(n.get_name())
 
 #test()
