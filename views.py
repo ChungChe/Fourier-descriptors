@@ -21,8 +21,8 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
  next contour, previous contour, first child contour, parent contour
  Real number    9  7  8    6  5  4  1  0  2  3
  ----------------------------------------------------------------------
- index		    0  2  3    6  8  9 10 11 13 14
-				|    / \   |          |
+ index          0  2  3    6  8  9 10 11 13 14
+                |    / \   |          |
  child          1   4   5  7          12 
 '''
 def traverse_top_level(hierarchy, idx, l):
