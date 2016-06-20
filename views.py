@@ -9,6 +9,7 @@ import numpy as np
 import cv2
 import fd_util as fu
 import time
+import my_tree
 
 app = Flask(__name__)
 
@@ -29,15 +30,38 @@ def traverse_top_level(hierarchy, idx, l):
         l.append(hierarchy[idx][0])
         traverse_top_level(hierarchy, hierarchy[idx][0], l)
 
+def find_first_non_negative_idx(hierarchy):
+    idx = 0
+    for i in xrange(0, len(hierarchy)):
+        if hierarchy[i][0] != -1:
+            idx = i
+            break
+    return idx
+
+def build_hierarchy_tree(hierarchy):
+	t = my_tree.tree()
+	for i in xrange(0, len(hierarchy)):
+		# top nodes
+		if hierarchy[i][3] == -1:
+			t.add_node(str(i))
+		elif hierarchy[i][3] != -1:
+			#print("add node {} under {}".format(str(i), str(hierarchy[i][3])))
+			t.add_node(str(i), str(hierarchy[i][3]))
+	return t
+'''
+	t.bfs("Root")
+	print("--------")
+	print(t.get_node("3").get_children())
+	print("--------")
+	print(t.get_node("6").get_children())
+	print("--------")
+'''
+
 def show_top_level(hierarchy):
     # find first non -1 index
     top_level_idx_list = []
-    first_idx = 0
-    for i in xrange(0, len(hierarchy)):
-        if hierarchy[i][0] != -1:
-            first_idx = i
-            top_level_idx_list.append(first_idx)
-            break
+    first_idx = find_first_non_negative_idx(hierarchy)
+    top_level_idx_list.append(first_idx)
     traverse_top_level(hierarchy, first_idx, top_level_idx_list)
     print(top_level_idx_list)
 
@@ -94,6 +118,19 @@ def contour2json(contours, index):
 	ret['final'] = result_list
 	return ret
 
+def compare(contourA, contourB):
+	x1, y1, w1, h1 = cv2.boundingRect(contourA)
+	x2, y2, w2, h2 = cv2.boundingRect(contourB)
+	if x1 <= x2:
+		if y1 + h1 > y2:
+			return -1
+		else:
+			return 1
+	else:
+		if y2 + h2 > y1:
+			return 1
+		else:
+			return -1
 ''' 
 	input param: index ith contour in 7seg.jpg
 '''
@@ -102,7 +139,6 @@ def extact_contours(index):
 	imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 	imgblur = cv2.GaussianBlur(imgray, (5, 5), 0)
 	ret, thres = cv2.threshold(imgblur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
 	kernel = np.ones((5, 5), np.uint8)
 	dilation = cv2.dilate(thres, kernel, iterations = 2)
 	(cv_version, _, _) = cv2.__version__.split(".")
@@ -117,16 +153,32 @@ def extact_contours(index):
 	print('contours[{}] : {}'.format(index, str(len(contours[index]))))
 	print('contours[{}][0] : {}'.format(index, str(len(contours[index][0]))))
 	print('contours[{}][0][0] : {}'.format(index, str(len(contours[index][0][0]))))
+	t = build_hierarchy_tree(hierarchy[0])
+	str_list = t.get_node("Root").get_children()
+	#print(t.get_node("Root").get_children())
+	int_list = map(int, str_list)
+	print(int_list)
+	contour_lst = []
+	for i in int_list:
+		x, y, w, h = cv2.boundingRect(contours[i])
+		print(i, x, y, w, h)
+		contour_lst.append(contours[i])
+	'''
+	contour_lst.sort(compare)
+	#print(compare(contour_lst[0], contour_lst[1]))
+	#print(compare(contour_lst[1], contour_lst[0]))
+	#sorted(contour_lst, cmp=compare)
+	print('-----------------------')
+	for i in contour_lst:
+		x, y, w, h = cv2.boundingRect(i)
+		print(x, y, w, h)
+	'''
+	print('-----------------------')
+	print(sorted(range(len(contour_lst)), key=lambda k: contour_lst[k], cmp=compare))
 
-	ccc = 0
-	for contour_i in contours:
-			x, y, w, h = cv2.boundingRect(contour_i)
-			print(ccc, x, y, w, h)
-			ccc += 1
-			
 #print('contours[0][0]:' + str(len(contours[0][0])))
-#	print('contours[0][0][0]:' + str(len(contours[0][0][0])))
-	start = time.clock()	
+	#print('contours[0][0][0]:' + str(len(contours[0][0][0])))
+	start = time.clock()
 	my_dict = contour2json(contours, index)
 	end = time.clock()
 	print("contour2json takes:"+str(end-start))
