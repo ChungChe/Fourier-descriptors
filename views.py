@@ -118,6 +118,7 @@ def contour2json(contours, index):
 	ret['final'] = result_list
 	return ret
 
+# Row order sorting
 def compare(contourA, contourB):
 	x1, y1, w1, h1 = cv2.boundingRect(contourA)
 	x2, y2, w2, h2 = cv2.boundingRect(contourB)
@@ -173,6 +174,7 @@ def extact_contours(index):
 		x, y, w, h = cv2.boundingRect(i)
 		print(x, y, w, h)
 	'''
+	# Sort all contours coordinate by row order
 	print('-----------------------')
 	print(sorted(range(len(contour_lst)), key=lambda k: contour_lst[k], cmp=compare))
 
