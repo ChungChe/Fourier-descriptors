@@ -10,6 +10,7 @@ import cv2
 import fd_util as fu
 import time
 import my_tree
+import math
 
 app = Flask(__name__)
 
@@ -75,19 +76,27 @@ def print_img_size(im):
     print('len of im:' + str(len(result)))
     print result[1], result[0]
 
-def take_partial_fd(fd_x, fd_y, n):
+def take_normalized_partial_fd(fds, n):
     ret_X = []
     ret_Y = []
     h = int((n - 1) / 2)
-    n = len(fd_x)
+    n = len(fds)
     for i in xrange(n - h, n):
-        ret_X.append(fd_x[i])
-        ret_Y.append(fd_y[i])
-    for i in xrange(0, h):
-        ret_X.append(fd_x[i])
-        ret_Y.append(fd_y[i])
-    return ret_X, ret_Y
+        ret_X.append(fds[i][0])
+        ret_Y.append(fds[i][1])
 
+    # translation invariant
+    ret_X.append(0)
+    ret_Y.append(0)
+    for i in xrange(1, h):
+        ret_X.append(fds[i][0])
+        ret_Y.append(fds[i][1])
+    # scaling invariant
+    ret = zip(ret_X, ret_Y)
+    max_value = max(map(lambda p: math.sqrt(p[0] * p[0] + p[1] * p[1]), ret))
+    s_X = map(lambda v: v/max_value, ret_X)
+    s_Y = map(lambda v: v/max_value, ret_Y)
+    return zip(s_X, s_Y)
 '''
  return 
     { data: [{x: 123, y: 234}, {x: 245, y: 111}, ...] }
@@ -107,26 +116,30 @@ def contour2json(contours, index):
         coord['x'] = x
         coord['y'] = y
         list_of_coord.append(coord)
-    
     ret['data'] = list_of_coord
+    original_points = zip(x_list, y_list)
 
     start1 = time.clock()    
-    fd_x, fd_y = fu.get_fd(x_list, y_list)
+    fds = fu.get_fd(original_points)
     end1 = time.clock()
 
     # invariants
-    # middle point invariants
-    fd_x[0] = 0
-    fd_y[0] = 0
-
-    new_x, new_y = take_partial_fd(fd_x, fd_y, 21)
+    # translation invariant
+    #fds[0][0] = 0
+    #fds[0][1] = 0
+    #fds = (0, 0) + fds[1:]
+    # scaling invariant
+    partial_fds = take_normalized_partial_fd(fds, 21) 
+    #max_value = max(map(lambda x: math.sqrt(x[0] * x[0] + x[1] * x[1]), partial_fds))
+    #print(max_value)
+    
 
     fd_list = []
-    for i in xrange(0, len(new_x)):
+    for i in xrange(0, len(partial_fds)):
         coord = {}
         coord['i'] = i
-        coord['x'] = new_x[i]
-        coord['y'] = new_y[i]
+        coord['x'] = partial_fds[i][0]
+        coord['y'] = partial_fds[i][1]
         fd_list.append(coord)
     ret['fd'] = fd_list
 
@@ -134,15 +147,15 @@ def contour2json(contours, index):
     #for i in xrange(0, len(fd_x)):
     #    print(i, fd_x[i], fd_y[i])
     start2 = time.clock()    
-    rev_x, rev_y = fu.get_inv_fd(fd_x, fd_y, 21)
+    rev_points = fu.get_inv_fd(fds, 21)
     end2 = time.clock()
     print("get_inv_fd takes:"+str(end2-start2))
     #print('==============================================')    
     result_list = []
-    for i in xrange(0, len(rev_x)):
+    for i in xrange(0, len(rev_points)):
         coord = {}
-        coord['x'] = int(rev_x[i])
-        coord['y'] = int(rev_y[i])
+        coord['x'] = int(rev_points[i][0])
+        coord['y'] = int(rev_points[i][1])
         #print(i, rev_x[i], rev_y[i])
         result_list.append(coord)
     ret['final'] = result_list

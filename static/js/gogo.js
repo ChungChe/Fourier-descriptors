@@ -8,7 +8,7 @@ function draw_his(myjson) {
         .attr('class', 'd3-tip')
         .offset([-10, 0])
         .html(function(d) {
-            return "<strong>(" + d.x + "," + d.y + ")</strong>";
+            return "<strong>(" + Math.sqrt(d.x * d.x + d.y * d.y) + ")</strong>";
         });
     var width = 1200;
     var height = 300;
