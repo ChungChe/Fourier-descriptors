@@ -63,7 +63,7 @@ def show_top_level(hierarchy):
     first_idx = find_first_non_negative_idx(hierarchy)
     top_level_idx_list.append(first_idx)
     traverse_top_level(hierarchy, first_idx, top_level_idx_list)
-    print(top_level_idx_list)
+    #print(top_level_idx_list)
 
 def show_img(im_stack):
     cv2.imshow('image', im_stack)
@@ -157,13 +157,19 @@ def extact_contours(index):
     t = build_hierarchy_tree(hierarchy[0])
     str_list = t.get_node("Root").get_children()
     #print(t.get_node("Root").get_children())
+
+    # convert str list to int list
     int_list = map(int, str_list)
     print(int_list)
-    contour_lst = []
+    
+    '''
     for i in int_list:
         x, y, w, h = cv2.boundingRect(contours[i])
         print(i, x, y, w, h)
         contour_lst.append(contours[i])
+    '''
+    contour_lst = map(lambda x: contours[x], int_list)
+    
     '''
     contour_lst.sort(compare)
     #print(compare(contour_lst[0], contour_lst[1]))
