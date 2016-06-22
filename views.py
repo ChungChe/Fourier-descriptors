@@ -75,6 +75,19 @@ def print_img_size(im):
     print('len of im:' + str(len(result)))
     print result[1], result[0]
 
+def take_partial_fd(fd_x, fd_y, n):
+    ret_X = []
+    ret_Y = []
+    h = int((n - 1) / 2)
+    n = len(fd_x)
+    for i in xrange(n - h, n):
+        ret_X.append(fd_x[i])
+        ret_Y.append(fd_y[i])
+    for i in xrange(0, h):
+        ret_X.append(fd_x[i])
+        ret_Y.append(fd_y[i])
+    return ret_X, ret_Y
+
 '''
  return 
     { data: [{x: 123, y: 234}, {x: 245, y: 111}, ...] }
@@ -100,6 +113,23 @@ def contour2json(contours, index):
     start1 = time.clock()    
     fd_x, fd_y = fu.get_fd(x_list, y_list)
     end1 = time.clock()
+
+    # invariants
+    # middle point invariants
+    fd_x[0] = 0
+    fd_y[0] = 0
+
+    new_x, new_y = take_partial_fd(fd_x, fd_y, 21)
+
+    fd_list = []
+    for i in xrange(0, len(new_x)):
+        coord = {}
+        coord['i'] = i
+        coord['x'] = new_x[i]
+        coord['y'] = new_y[i]
+        fd_list.append(coord)
+    ret['fd'] = fd_list
+
     print("get_fd takes:"+str(end1-start1))
     #for i in xrange(0, len(fd_x)):
     #    print(i, fd_x[i], fd_y[i])
