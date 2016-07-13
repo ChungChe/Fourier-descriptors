@@ -10,8 +10,8 @@ function draw_his(myjson) {
         .html(function(d) {
             return "<strong>(" + Math.sqrt(d.x * d.x + d.y * d.y) + ")</strong>";
         });
-    var width = 1200;
-    var height = 300;
+    var width = 600;
+    var height = 200;
     var svg = d3.select("body").append("svg")
         .attr("width", width)
         .attr("height", height)
