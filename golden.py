@@ -89,26 +89,38 @@ def take_normalized_partial_fd(fds, n):
         ret_Y.append(fds[i][1])
     # scaling invariant
     ret = zip(ret_X, ret_Y)
-    G_plus_one = math.sqrt(fds[h+1][0] * fds[h+1][0] + fds[h+1][1] + fds[h+1][1])
-    G_minus_one = math.sqrt(fds[h-1][0] * fds[h-1][0] + fds[h-1][1] + fds[h-1][1])
+    '''
+    fdx_plus = fds[h+1][0]
+    fdy_plus = fds[h+1][1]
+    ss_plus = fdx_plus * fdx_plus + fdy_plus * fdy_plus
+    G_plus_one = math.sqrt(ss_plus) 
+    
+    fdx_minus = fds[h-1][0]
+    fdy_minus = fds[h-1][1]
+    ss_minus = fdx_minus * fdx_minus + fdy_minus * fdy_minus
+    G_minus_one = math.sqrt(ss_minus)
     factor = 1.0 / (G_plus_one + G_minus_one)
-    #max_value = max(map(lambda p: math.sqrt(p[0] * p[0] + p[1] * p[1]), ret))
-    #s_X = map(lambda v: v/max_value, ret_X)
-    #s_Y = map(lambda v: v/max_value, ret_Y)
-    s_X = map(lambda v: v * factor, ret_X)
-    s_Y = map(lambda v: v * factor, ret_Y)
+    '''
+    max_value = max(map(lambda p: math.sqrt(p[0] * p[0] + p[1] * p[1]), ret))
+    s_X = map(lambda v: v/max_value, ret_X)
+    s_Y = map(lambda v: v/max_value, ret_Y)
+    
+#s_X = map(lambda v: v * factor, ret_X)
+#    s_Y = map(lambda v: v * factor, ret_Y)
     return zip(s_X, s_Y)
 # G-
 def rotate_negative_fd(x, y, angle):
-	ret_x = x * math.cos(angle) + y * math.sin(angle)
-	ret_y = y * math.cos(angle) - x * math.sin(angle) 
-	return (ret_x, ret_y)
+    angle_ = angle * math.pi / 180.0
+    ret_x = x * math.cos(angle_) + y * math.sin(angle_)
+    ret_y = y * math.cos(angle_) - x * math.sin(angle_) 
+    return (ret_x, ret_y)
 
 # G+
 def rotate_positive_fd(x, y, angle):
-	ret_x = x * math.cos(angle) - y * math.sin(angle)
-	ret_y = x * math.sin(angle) + y * math.cos(angle)
-	return (ret_x, ret_y)
+    angle_ = angle * math.pi / 180.0
+    ret_x = x * math.cos(angle_) - y * math.sin(angle_)
+    ret_y = x * math.sin(angle_) + y * math.cos(angle_)
+    return (ret_x, ret_y)
 
 def fp(fds, angle):
     s = 0
@@ -151,6 +163,8 @@ def shift_start_point_phase(fds, angle):
 
 def make_start_point_invariant(fds):
     angle = get_start_point_phase(fds)
+    print("@@@@@ {} @@@@@".format(angle * 180.0 / math.pi))
+
     return shift_start_point_phase(fds, angle)
 def draw_points(pt, title):
     max_x = -99999
@@ -167,7 +181,7 @@ def draw_points(pt, title):
             max_y = p[1]
         if p[1] < min_y:
             min_y = p[1]
-    factor = 1
+    factor = 40
     half_x = int((max_x - min_x) / 2 * factor)
     half_y = int((max_y - min_y) / 2 * factor)
     width = int((max_x - min_x) * factor)
@@ -185,6 +199,16 @@ def draw_points(pt, title):
         #print("[{}]: ({}, {})".format(idx, pos_x, pos_y))
         cv2.circle(img, (pos_x, pos_y), 3, (0, 0, 255), -1)
     show_img(img, title)
+def get_shape_angle(partial_fds):
+    pos_x = 0.0
+    pos_y = 0.0
+    for i in xrange(1, 10):
+        pos_x += (1.0 / i) * (partial_fds[10 + i][0] + partial_fds[10 - i][0])
+        pos_y += (1.0 / i) * (partial_fds[10 + i][1] + partial_fds[10 - i][1])
+    print("pos ({}, {})".format(pos_x, pos_y))
+    final_angle = math.atan2(pos_y, pos_x) * (180.0 / math.pi)
+    return final_angle
+
 def get_golden(contours, index):
     list_of_coord = []
     x_list = []
@@ -200,23 +224,29 @@ def get_golden(contours, index):
     start1 = time.clock()    
     fds = fu.get_fd(original_points)
     end1 = time.clock()
-	
     fds_half_count = (len(fds) - 21) / 2
-    print("@@@@@ {} @@@@@@@@".format(fds_half_count))	
+    #print("@@@@@ {} @@@@@@@@ {}".format(fds_half_count, len(fds)))	
     #partial_fds = take_normalized_partial_fd(fds, 21) 
     tmp_fds = take_normalized_partial_fd(fds, 21) 
     partial_fds = make_start_point_invariant(tmp_fds)
+    gg = get_shape_angle(partial_fds)
+    print("final_angle = {}".format(gg))
+    
+    plus_one_angle = math.atan2(partial_fds[11][1], partial_fds[11][0]) * (180.0 / math.pi)
+    minus_one_angle = math.atan2(partial_fds[9][1], partial_fds[9][0]) * (180.0 / math.pi)
+    shape_angle = (plus_one_angle + minus_one_angle) / 2.0
+    print("shape_angle = {}".format(shape_angle))
     
     for i in xrange(0, fds_half_count):
     #for i in xrange(0, 192):
         partial_fds.insert(0, (0, 0))
         partial_fds.append((0, 0))
     items = deque(partial_fds)
-    print(items)
-    items.rotate(-202)
-    print("$$$$$$$$$$")
+    #print(items)
+    items.rotate(-((len(fds)-1)/2))
+    #print("$$$$$$$$$$")
     final = list(items)
-    print(final)
+    #print(final)
     #max_value = max(map(lambda x: math.sqrt(x[0] * x[0] + x[1] * x[1]), partial_fds))
     #print(max_value)
     
@@ -225,28 +255,18 @@ def get_golden(contours, index):
     #    print(i, fd_x[i], fd_y[i])
     start2 = time.clock()    
     #rev_points = fu.get_inv_fd(fds, 21)
-    rev_points = fu.get_inv_fd(fds, 21)
+    rev_points = fu.get_inv_fd(final, 21)
     print("##### rev points for idx: {} = {} ##### {}".format(index, len(rev_points), len(fds)))
     end2 = time.clock()
     print("get_inv_fd takes:"+str(end2-start2))
     draw_points(rev_points, 'idx: {}'.format(str(index)))
     #print('==============================================')   
-    pos_x = 0.0
-    pos_y = 0.0
-    for i in xrange(1, 10):
-        pos_x += (1.0 / i) * (partial_fds[10 + i][0] + partial_fds[10 - i][0])
-        pos_y += (1.0 / i) * (partial_fds[10 + i][1] + partial_fds[10 - i][1])
-    print("pos ({}, {})".format(pos_x, pos_y))
-    final_angle = math.atan2(pos_y, pos_x) * (180.0 / math.pi)
-    print("final_angle = {}".format(final_angle))
+    '''
     for idx, p in enumerate(partial_fds):
         angle = math.atan2(p[1], p[0]) * (180.0 / math.pi)
         radius = math.sqrt(p[0] * p[0] + p[1] * p[1])
         print("{}: ({}, {}) angle = {} r = {}".format(idx, p[0], p[1], angle, radius))
-    plus_one_angle = math.atan2(partial_fds[11][1], partial_fds[11][0]) * (180.0 / math.pi)
-    minus_one_angle = math.atan2(partial_fds[9][1], partial_fds[9][0]) * (180.0 / math.pi)
-    shape_angle = (plus_one_angle + minus_one_angle) / 2.0
-    print("shape_angle = {}".format(shape_angle))
+    '''
     middle_x = (partial_fds[11][0] + partial_fds[9][0]) / 2.0
     middle_y = (partial_fds[11][1] + partial_fds[9][1]) / 2.0
     print("({}, {})".format(middle_x, middle_y))
@@ -348,8 +368,9 @@ def extact_contours():
     print(row_idx_list)
     #print('contours[0][0]:' + str(len(contours[0][0])))
     #print('contours[0][0][0]:' + str(len(contours[0][0][0])))
-    get_golden(contours, 0)
-    get_golden(contours, 6)
+    get_golden(contours, 13)
+    get_golden(contours, 8)
+#    get_golden(contours, 6)
 #    start = time.clock()
 #    my_dict = get_golden(contours, index)
 #    end = time.clock()
