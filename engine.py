@@ -179,7 +179,7 @@ def extact_contours(index):
     if cv_version == 3:
         contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     else:
-        contours, hierarchy = cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        _, contours, hierarchy= cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     cv2.drawContours(im, contours, -1, (0, 255, 0), 1)
     print('hierarchy: ' + str(len(hierarchy[0])))
     show_top_level(hierarchy[0])

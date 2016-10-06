@@ -5,7 +5,7 @@ import time
 import numpy as np
 import cv2
 import fd_util as fu
-
+from collections import deque
 
 '''
  Show 0 - 9 contour indexes
@@ -98,7 +98,93 @@ def take_normalized_partial_fd(fds, n):
     s_X = map(lambda v: v * factor, ret_X)
     s_Y = map(lambda v: v * factor, ret_Y)
     return zip(s_X, s_Y)
+# G-
+def rotate_negative_fd(x, y, angle):
+	ret_x = x * math.cos(angle) + y * math.sin(angle)
+	ret_y = y * math.cos(angle) - x * math.sin(angle) 
+	return (ret_x, ret_y)
 
+# G+
+def rotate_positive_fd(x, y, angle):
+	ret_x = x * math.cos(angle) - y * math.sin(angle)
+	ret_y = x * math.sin(angle) + y * math.cos(angle)
+	return (ret_x, ret_y)
+
+def fp(fds, angle):
+    s = 0
+    half = (len(fds) - 1) / 2
+    for i in xrange(1, half + 1):
+        minus_x = fds[half - i][0]
+        minus_y = fds[half - i][1]
+        plus_x = fds[half + i][0]
+        plus_y = fds[half + i][1]
+        # minus part
+        z1 = rotate_negative_fd(minus_x, minus_y, angle)
+        # plus part
+        z2 = rotate_positive_fd(plus_x, plus_y, angle)
+        s += z1[0] * z2[1] - z1[1] * z2[0]
+    return s
+def get_start_point_phase(fds):
+    cmax = -99999
+    ret = 0
+    k = 400
+    for i in xrange(0, k):
+        angle = math.pi * i / float(k)
+        c = fp(fds, angle)
+        if c > cmax:
+            cmax = c
+            ret = angle
+    return ret
+def shift_start_point_phase(fds, angle):
+    fds_tmp = fds
+    half = (len(fds_tmp) - 1) / 2
+    for i in xrange(1, half + 1):
+        minus_x = fds[half - i][0]
+        minus_y = fds[half - i][1]
+        plus_x = fds[half + i][0]
+        plus_y = fds[half + i][1]
+        z1 = rotate_negative_fd(minus_x, minus_y, angle)
+        z2 = rotate_positive_fd(plus_x, plus_y, angle)
+        fds_tmp[half - i] = z1
+        fds_tmp[half + i] = z2
+    return fds_tmp
+
+def make_start_point_invariant(fds):
+    angle = get_start_point_phase(fds)
+    return shift_start_point_phase(fds, angle)
+def draw_points(pt, title):
+    max_x = -99999
+    min_x = 99999
+    max_y = -99999
+    min_y = 99999
+    
+    for p in pt:
+        if p[0] > max_x:
+            max_x = p[0]
+        if p[0] < min_x:
+            min_x = p[0]
+        if p[1] > max_y:
+            max_y = p[1]
+        if p[1] < min_y:
+            min_y = p[1]
+    factor = 1
+    half_x = int((max_x - min_x) / 2 * factor)
+    half_y = int((max_y - min_y) / 2 * factor)
+    width = int((max_x - min_x) * factor)
+    height = int((max_y - min_y) * factor)
+    print("w, h = ({}, {})".format(width, height))
+    print("hx, hy = ({}, {})".format(half_x, half_y))
+    img = np.zeros((height, width, 3), np.uint8)
+    # draw vertical line
+    cv2.line(img, (half_x, 0), (half_x, height -1), (255, 0, 0), 1)
+    # draw horizontal line
+    cv2.line(img, (0, half_y), (width - 1, half_y), (255, 0, 0), 1)
+    for idx, p in enumerate(pt):
+        pos_x = int(p[0] * factor) + half_x
+        pos_y = int(p[1] * factor) + half_y
+        #print("[{}]: ({}, {})".format(idx, pos_x, pos_y))
+        cv2.circle(img, (pos_x, pos_y), 3, (0, 0, 255), -1)
+    show_img(img, title)
 def get_golden(contours, index):
     list_of_coord = []
     x_list = []
@@ -114,8 +200,23 @@ def get_golden(contours, index):
     start1 = time.clock()    
     fds = fu.get_fd(original_points)
     end1 = time.clock()
-
-    partial_fds = take_normalized_partial_fd(fds, 21) 
+	
+    fds_half_count = (len(fds) - 21) / 2
+    print("@@@@@ {} @@@@@@@@".format(fds_half_count))	
+    #partial_fds = take_normalized_partial_fd(fds, 21) 
+    tmp_fds = take_normalized_partial_fd(fds, 21) 
+    partial_fds = make_start_point_invariant(tmp_fds)
+    
+    for i in xrange(0, fds_half_count):
+    #for i in xrange(0, 192):
+        partial_fds.insert(0, (0, 0))
+        partial_fds.append((0, 0))
+    items = deque(partial_fds)
+    print(items)
+    items.rotate(-202)
+    print("$$$$$$$$$$")
+    final = list(items)
+    print(final)
     #max_value = max(map(lambda x: math.sqrt(x[0] * x[0] + x[1] * x[1]), partial_fds))
     #print(max_value)
     
@@ -123,9 +224,12 @@ def get_golden(contours, index):
     #for i in xrange(0, len(fd_x)):
     #    print(i, fd_x[i], fd_y[i])
     start2 = time.clock()    
+    #rev_points = fu.get_inv_fd(fds, 21)
     rev_points = fu.get_inv_fd(fds, 21)
+    print("##### rev points for idx: {} = {} ##### {}".format(index, len(rev_points), len(fds)))
     end2 = time.clock()
     print("get_inv_fd takes:"+str(end2-start2))
+    draw_points(rev_points, 'idx: {}'.format(str(index)))
     #print('==============================================')   
     pos_x = 0.0
     pos_y = 0.0
@@ -146,13 +250,10 @@ def get_golden(contours, index):
     middle_x = (partial_fds[11][0] + partial_fds[9][0]) / 2.0
     middle_y = (partial_fds[11][1] + partial_fds[9][1]) / 2.0
     print("({}, {})".format(middle_x, middle_y))
-    print('==============================================')   
-    draw_line_test(partial_fds, str(index))
-
+    #print('==============================================')   
+    #draw_line_test(partial_fds, str(index))
 def show_img(im_stack, title):
     cv2.imshow(title, im_stack)
-#cv2.waitKey(0)
-
 def draw_line_test(pt, title):
     max_x = -99999
     min_x = 99999
