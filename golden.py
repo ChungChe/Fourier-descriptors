@@ -236,6 +236,7 @@ def get_golden(contours, index):
     minus_one_angle = math.atan2(partial_fds[9][1], partial_fds[9][0]) * (180.0 / math.pi)
     shape_angle = (plus_one_angle + minus_one_angle) / 2.0
     print("shape_angle = {}".format(shape_angle))
+    draw_line_test(partial_fds, str(index))
     
     for i in xrange(0, fds_half_count):
     #for i in xrange(0, 192):
@@ -271,7 +272,6 @@ def get_golden(contours, index):
     middle_y = (partial_fds[11][1] + partial_fds[9][1]) / 2.0
     print("({}, {})".format(middle_x, middle_y))
     #print('==============================================')   
-    #draw_line_test(partial_fds, str(index))
 def show_img(im_stack, title):
     cv2.imshow(title, im_stack)
 def draw_line_test(pt, title):
@@ -289,7 +289,7 @@ def draw_line_test(pt, title):
             max_y = p[1]
         if p[1] < min_y:
             min_y = p[1]
-    factor = 25
+    factor = 500
     half_x = int((max_x - min_x) / 2 * factor)
     half_y = int((max_y - min_y) / 2 * factor)
     width = int((max_x - min_x) * factor)
@@ -368,8 +368,8 @@ def extact_contours():
     print(row_idx_list)
     #print('contours[0][0]:' + str(len(contours[0][0])))
     #print('contours[0][0][0]:' + str(len(contours[0][0][0])))
-    get_golden(contours, 13)
-    get_golden(contours, 8)
+    get_golden(contours, 6)
+    get_golden(contours, 0)
 #    get_golden(contours, 6)
 #    start = time.clock()
 #    my_dict = get_golden(contours, index)
