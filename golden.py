@@ -237,9 +237,10 @@ def get_golden(contours, index):
     shape_angle = (plus_one_angle + minus_one_angle) / 2.0
     print("shape_angle = {}".format(shape_angle))
     draw_line_test(partial_fds, str(index))
-    
+   
+    for p in partial_fds:
+        print("{} {}".format(p[0], p[1]))
     for i in xrange(0, fds_half_count):
-    #for i in xrange(0, 192):
         partial_fds.insert(0, (0, 0))
         partial_fds.append((0, 0))
     items = deque(partial_fds)
@@ -310,9 +311,11 @@ def draw_line_test(pt, title):
         cv2.putText(img, str(idx), (pos_x, pos_y), font, 0.5, (255, 255, 255), 2, cv2.LINE_AA)
     show_img(img, title)
 
-def extact_contours():
+def extact_contours(file_name, number):
 
-    im = cv2.imread('image/7seg.jpg')
+    #im = cv2.imread('image/7seg_rotate.jpg')
+
+    im = cv2.imread(file_name)
     imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     imgblur = cv2.GaussianBlur(imgray, (5, 5), 0)
     ret, thres = cv2.threshold(imgblur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -368,8 +371,8 @@ def extact_contours():
     print(row_idx_list)
     #print('contours[0][0]:' + str(len(contours[0][0])))
     #print('contours[0][0][0]:' + str(len(contours[0][0][0])))
-    get_golden(contours, 6)
-    get_golden(contours, 0)
+    get_golden(contours, number)
+#    get_golden(contours, 0)
 #    get_golden(contours, 6)
 #    start = time.clock()
 #    my_dict = get_golden(contours, index)
@@ -383,4 +386,7 @@ def extact_contours():
     #print((contours[0][0][0][1]))
 #return my_dict
     cv2.waitKey()
-extact_contours()
+if len(sys.argv) < 3:
+    print("Usage python golden.py filename number")
+    sys.exit()
+extact_contours(sys.argv[1], int(sys.argv[2]))
