@@ -8,11 +8,12 @@ def cam_setup(cam):
     test = cam.get(cv2.CAP_PROP_POS_MSEC)
     ratio = cam.get(cv2.CAP_PROP_POS_AVI_RATIO)
     frame_rate = cam.get(cv2.CAP_PROP_FPS)
-    # I don't know how to turn off webcam's white balancing
-    # But in http://stackoverflow.com/questions/5652085/how-to-disable-automatic-white-balance-from-webcam
-    # "I'm also having issues trying to disable the automatic image processing on my webcam. In lower light levels it can reduce the frame rate by up to 75% while it auto adjusts :-( – Gavimoss Apr 21 '11 at 21:07"
-    # So I reducing the framerate to 21(mine is 30)
-    # Thanks Gavimoss
+    '''
+    I don't know how to turn off webcam's white balancing
+    But in http://stackoverflow.com/questions/5652085/how-to-disable-automatic-white-balance-from-webcam
+    Gavimoss's comment, so I reducing the framerate to 21(mine is 30)
+    Thanks Gavimoss
+    '''
     cam.set(cv2.CAP_PROP_FPS, 21)
     width = cam.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = cam.get(cv2.CAP_PROP_FRAME_HEIGHT)

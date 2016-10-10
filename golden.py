@@ -316,6 +316,18 @@ def draw_line_test(pt, title):
         cv2.putText(img, str(idx), (pos_x, pos_y), font, 0.5, (255, 255, 255), 2, cv2.LINE_AA)
     show_img(img, title)
 
+def distance(pt):
+    return math.sqrt(pt[0] * pt[0] + pt[1] * pt[1])
+def get_mag_value(fds1, fds2):
+    if len(fds1) != len(fds2):
+        return 999.9
+    sum = 0.0
+    for i in xrange(0, len(fds1)):
+        d1 = distance(fds1[i])
+        d2 = distance(fds2[i])
+        sum += (d1 - d2) * (d1 - d2)
+    return math.sqrt(sum)
+
 def get_match_value(fds1, fds2):
     if len(fds1) != len(fds2):
         return 999.9
@@ -331,6 +343,8 @@ def get_best_match(fds):
     best_idx = -1
     for i in xrange(0, len(golden_val.fd)):
         val = get_match_value(fds, golden_val.fd[i])
+        mag = get_mag_value(fds, golden_val.fd[i])
+        print("idx {} value: {} mag: {}".format(i, val, mag))
         if val < min_val:
             min_val = val
             best_idx = i
@@ -341,9 +355,9 @@ def extact_contours(file_name):
 
     im = cv2.imread(file_name)
     imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    imgblur = cv2.GaussianBlur(imgray, (1, 1), 0)
+    imgblur = cv2.GaussianBlur(imgray, (3, 3), 0)
     ret, thres = cv2.threshold(imgblur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    kernel = np.ones((1, 1), np.uint8)
+    kernel = np.ones((3, 3), np.uint8)
     dilation = cv2.dilate(thres, kernel, iterations = 2)
 
     (cv_version, _, _) = cv2.__version__.split(".")
@@ -363,7 +377,9 @@ def extact_contours(file_name):
 #    print('contours[{}][0][0] : {}'.format(index, str(len(contours[index][0][0]))))
     t = build_hierarchy_tree(hierarchy[0])
     str_list = t.get_node("Root").get_children()
-    #print(t.get_node("Root").get_children())
+    #print('root child: {}'.format(t.get_node("Root").get_children()))
+    #print('1 child: {}'.format(t.get_node('1').get_children()))
+    #print('3 child: {}'.format(t.get_node('3').get_children()))
 
     # convert str list to int list
     int_list = map(int, str_list)
@@ -398,6 +414,8 @@ def extact_contours(file_name):
     for idx in row_idx_list:
     #get_golden(contours, number)
         get_golden(contours, idx)
+        print('{}''s child count = {}'.format(idx, len(t.get_node(str(idx)).get_children())))
+        #print('1 child: {}'.format(t.get_node('1').get_children()))
 #    get_golden(contours, 0)
 #    get_golden(contours, 6)
 #    start = time.clock()
