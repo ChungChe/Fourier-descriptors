@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 import fd_util as fu
 from collections import deque
-
+import golden_val
 '''
  Show 0 - 9 contour indexes
  hierarchy has 4 elements
@@ -163,7 +163,7 @@ def shift_start_point_phase(fds, angle):
 
 def make_start_point_invariant(fds):
     angle = get_start_point_phase(fds)
-    print("@@@@@ {} @@@@@".format(angle * 180.0 / math.pi))
+    #print("@@@@@ {} @@@@@".format(angle * 180.0 / math.pi))
 
     return shift_start_point_phase(fds, angle)
 def draw_points(pt, title):
@@ -205,7 +205,7 @@ def get_shape_angle(partial_fds):
     for i in xrange(1, 10):
         pos_x += (1.0 / i) * (partial_fds[10 + i][0] + partial_fds[10 - i][0])
         pos_y += (1.0 / i) * (partial_fds[10 + i][1] + partial_fds[10 - i][1])
-    print("pos ({}, {})".format(pos_x, pos_y))
+    #print("pos ({}, {})".format(pos_x, pos_y))
     final_angle = math.atan2(pos_y, pos_x) * (180.0 / math.pi)
     return final_angle
 
@@ -229,17 +229,21 @@ def get_golden(contours, index):
     #partial_fds = take_normalized_partial_fd(fds, 21) 
     tmp_fds = take_normalized_partial_fd(fds, 21) 
     partial_fds = make_start_point_invariant(tmp_fds)
-    gg = get_shape_angle(partial_fds)
-    print("final_angle = {}".format(gg))
+    # debug get best match
+    print("Best match for index: {} is {}".format(index, get_best_match(partial_fds)))
+    
+    #gg = get_shape_angle(partial_fds)
+    #print("final_angle = {}".format(gg))
     
     plus_one_angle = math.atan2(partial_fds[11][1], partial_fds[11][0]) * (180.0 / math.pi)
     minus_one_angle = math.atan2(partial_fds[9][1], partial_fds[9][0]) * (180.0 / math.pi)
-    shape_angle = (plus_one_angle + minus_one_angle) / 2.0
-    print("shape_angle = {}".format(shape_angle))
-    draw_line_test(partial_fds, str(index))
-   
+    #shape_angle = (plus_one_angle + minus_one_angle) / 2.0
+    #print("shape_angle = {}".format(shape_angle))
+    #draw_line_test(partial_fds, str(index))
+    '''
     for p in partial_fds:
         print("{} {}".format(p[0], p[1]))
+    '''
     for i in xrange(0, fds_half_count):
         partial_fds.insert(0, (0, 0))
         partial_fds.append((0, 0))
@@ -252,16 +256,17 @@ def get_golden(contours, index):
     #max_value = max(map(lambda x: math.sqrt(x[0] * x[0] + x[1] * x[1]), partial_fds))
     #print(max_value)
     
-    print("get_fd takes:"+str(end1-start1))
+    #print("get_fd takes:"+str(end1-start1))
+    
     #for i in xrange(0, len(fd_x)):
     #    print(i, fd_x[i], fd_y[i])
     start2 = time.clock()    
     #rev_points = fu.get_inv_fd(fds, 21)
     rev_points = fu.get_inv_fd(final, 21)
-    print("##### rev points for idx: {} = {} ##### {}".format(index, len(rev_points), len(fds)))
+    #print("##### rev points for idx: {} = {} ##### {}".format(index, len(rev_points), len(fds)))
     end2 = time.clock()
     print("get_inv_fd takes:"+str(end2-start2))
-    draw_points(rev_points, 'idx: {}'.format(str(index)))
+    #draw_points(rev_points, 'idx: {}'.format(str(index)))
     #print('==============================================')   
     '''
     for idx, p in enumerate(partial_fds):
@@ -311,15 +316,34 @@ def draw_line_test(pt, title):
         cv2.putText(img, str(idx), (pos_x, pos_y), font, 0.5, (255, 255, 255), 2, cv2.LINE_AA)
     show_img(img, title)
 
-def extact_contours(file_name, number):
+def get_match_value(fds1, fds2):
+    if len(fds1) != len(fds2):
+        return 999.9
+    sum = 0.0
+    for i in xrange(0, len(fds1)):
+        x_delta = fds1[i][0] - fds2[i][0]
+        y_delta = fds1[i][1] - fds2[i][1]
+        sum += x_delta * x_delta + y_delta * y_delta
+    return math.sqrt(sum)
+    
+def get_best_match(fds):
+    min_val = 9999.9
+    best_idx = -1
+    for i in xrange(0, len(golden_val.fd)):
+        val = get_match_value(fds, golden_val.fd[i])
+        if val < min_val:
+            min_val = val
+            best_idx = i
+    return best_idx
+def extact_contours(file_name):
 
     #im = cv2.imread('image/7seg_rotate.jpg')
 
     im = cv2.imread(file_name)
     imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    imgblur = cv2.GaussianBlur(imgray, (5, 5), 0)
+    imgblur = cv2.GaussianBlur(imgray, (1, 1), 0)
     ret, thres = cv2.threshold(imgblur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    kernel = np.ones((5, 5), np.uint8)
+    kernel = np.ones((1, 1), np.uint8)
     dilation = cv2.dilate(thres, kernel, iterations = 2)
 
     (cv_version, _, _) = cv2.__version__.split(".")
@@ -343,7 +367,7 @@ def extact_contours(file_name, number):
 
     # convert str list to int list
     int_list = map(int, str_list)
-    print(int_list)
+    #print(int_list)
     
     '''
     for i in int_list:
@@ -364,14 +388,16 @@ def extact_contours(file_name, number):
         print(x, y, w, h)
     '''
     # Sort all contours coordinate by row order
-    print('-----------------------')
+    #print('-----------------------')
     row_sorted_order_list = sorted(range(len(contour_lst)), key=lambda k: contour_lst[k], cmp=compare)
-    print(row_sorted_order_list)
+    #print(row_sorted_order_list)
     row_idx_list = map(lambda x: int_list[x], row_sorted_order_list)
     print(row_idx_list)
     #print('contours[0][0]:' + str(len(contours[0][0])))
     #print('contours[0][0][0]:' + str(len(contours[0][0][0])))
-    get_golden(contours, number)
+    for idx in row_idx_list:
+    #get_golden(contours, number)
+        get_golden(contours, idx)
 #    get_golden(contours, 0)
 #    get_golden(contours, 6)
 #    start = time.clock()
@@ -386,7 +412,7 @@ def extact_contours(file_name, number):
     #print((contours[0][0][0][1]))
 #return my_dict
     cv2.waitKey()
-if len(sys.argv) < 3:
-    print("Usage python golden.py filename number")
+if len(sys.argv) < 2:
+    print("Usage python golden.py filename")
     sys.exit()
-extact_contours(sys.argv[1], int(sys.argv[2]))
+extact_contours(sys.argv[1])
