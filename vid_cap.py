@@ -11,7 +11,7 @@ def cam_setup(cam):
     '''
     I don't know how to turn off webcam's white balancing
     But in http://stackoverflow.com/questions/5652085/how-to-disable-automatic-white-balance-from-webcam
-    Gavimoss's comment, so I reducing the framerate to 21(mine is 30)
+    Gavimoss's comment, so I reduce the framerate to 21(mine is 30)
     Thanks Gavimoss
     '''
     cam.set(cv2.CAP_PROP_FPS, 21)
