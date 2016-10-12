@@ -51,7 +51,7 @@ while True:
     val = golden.identify_number(im)
     diff = abs(last_val - val)
     #print("val: {}, diff: {}".format(val, diff))
-    if last_val != -1 and diff < 30:
+    if last_val != -1 and diff < 15:
         print(val)
     last_val = val
 cv2.destroyAllWindows()

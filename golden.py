@@ -350,6 +350,16 @@ def get_best_match(fds):
         if val < min_val:
             min_val = val
             best_idx = i
+    best_mag_idx = -1
+    mag_min_val = 9999.9
+    for i in xrange(0, len(golden_val.fd)):
+        mag = get_mag_value(fds, golden_val.fd[i])
+        if mag < mag_min_val:
+            mag_min_val = mag;
+            best_mag_idx = i
+    # Dirty workaround, I found that 6 may identify as 0
+    if best_idx == 0 and best_mag_idx == 6:
+        best_idx = 6
     return best_idx
 def identify_number(im):
     imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
