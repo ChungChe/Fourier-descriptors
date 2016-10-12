@@ -230,8 +230,8 @@ def get_golden(contours, index):
     tmp_fds = take_normalized_partial_fd(fds, 21) 
     partial_fds = make_start_point_invariant(tmp_fds)
     # debug get best match
-    print("Best match for index: {} is {}".format(index, get_best_match(partial_fds)))
-    
+    #print("Best match for index: {} is {}".format(index, get_best_match(partial_fds)))
+    return (get_best_match(partial_fds))
     #gg = get_shape_angle(partial_fds)
     #print("final_angle = {}".format(gg))
     
@@ -260,12 +260,12 @@ def get_golden(contours, index):
     
     #for i in xrange(0, len(fd_x)):
     #    print(i, fd_x[i], fd_y[i])
-    start2 = time.clock()    
+    #start2 = time.clock()    
     #rev_points = fu.get_inv_fd(fds, 21)
     rev_points = fu.get_inv_fd(final, 21)
     #print("##### rev points for idx: {} = {} ##### {}".format(index, len(rev_points), len(fds)))
-    end2 = time.clock()
-    print("get_inv_fd takes:"+str(end2-start2))
+    #end2 = time.clock()
+    #print("get_inv_fd takes:"+str(end2-start2))
     #draw_points(rev_points, 'idx: {}'.format(str(index)))
     #print('==============================================')   
     '''
@@ -274,9 +274,11 @@ def get_golden(contours, index):
         radius = math.sqrt(p[0] * p[0] + p[1] * p[1])
         print("{}: ({}, {}) angle = {} r = {}".format(idx, p[0], p[1], angle, radius))
     '''
+    '''
     middle_x = (partial_fds[11][0] + partial_fds[9][0]) / 2.0
     middle_y = (partial_fds[11][1] + partial_fds[9][1]) / 2.0
     print("({}, {})".format(middle_x, middle_y))
+    '''
     #print('==============================================')   
 def show_img(im_stack, title):
     cv2.imshow(title, im_stack)
@@ -344,16 +346,12 @@ def get_best_match(fds):
     for i in xrange(0, len(golden_val.fd)):
         val = get_match_value(fds, golden_val.fd[i])
         mag = get_mag_value(fds, golden_val.fd[i])
-        print("idx {} value: {} mag: {}".format(i, val, mag))
+        #print("idx {} value: {} mag: {}".format(i, val, mag))
         if val < min_val:
             min_val = val
             best_idx = i
     return best_idx
-def extact_contours(file_name):
-
-    #im = cv2.imread('image/7seg_rotate.jpg')
-
-    im = cv2.imread(file_name)
+def identify_number(im):
     imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     imgblur = cv2.GaussianBlur(imgray, (3, 3), 0)
     ret, thres = cv2.threshold(imgblur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -366,20 +364,13 @@ def extact_contours(file_name):
     else:
         _, contours, hierarchy= cv2.findContours(dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     
-    cv2.drawContours(im, contours, -1, (0, 255, 0), 1)
-    show_img(im, 'source with contour')
+    #cv2.drawContours(im, contours, -1, (0, 255, 0), 1)
+    #show_img(im, 'source with contour')
     
     #print('hierarchy: ' + str(len(hierarchy[0])))
     show_top_level(hierarchy[0])
-#print('contours: {}'.format(str(len(contours))))
-#    print('contours[{}] : {}'.format(index, str(len(contours[index]))))
-#    print('contours[{}][0] : {}'.format(index, str(len(contours[index][0]))))
-#    print('contours[{}][0][0] : {}'.format(index, str(len(contours[index][0][0]))))
     t = build_hierarchy_tree(hierarchy[0])
     str_list = t.get_node("Root").get_children()
-    #print('root child: {}'.format(t.get_node("Root").get_children()))
-    #print('1 child: {}'.format(t.get_node('1').get_children()))
-    #print('3 child: {}'.format(t.get_node('3').get_children()))
 
     # convert str list to int list
     int_list = map(int, str_list)
@@ -408,16 +399,20 @@ def extact_contours(file_name):
     row_sorted_order_list = sorted(range(len(contour_lst)), key=lambda k: contour_lst[k], cmp=compare)
     #print(row_sorted_order_list)
     row_idx_list = map(lambda x: int_list[x], row_sorted_order_list)
-    print(row_idx_list)
+    #print(row_idx_list)
     #print('contours[0][0]:' + str(len(contours[0][0])))
     #print('contours[0][0][0]:' + str(len(contours[0][0][0])))
+    ans = ""
     for idx in row_idx_list:
-    #get_golden(contours, number)
-        get_golden(contours, idx)
-        print('{}''s child count = {}'.format(idx, len(t.get_node(str(idx)).get_children())))
-        #print('1 child: {}'.format(t.get_node('1').get_children()))
-#    get_golden(contours, 0)
-#    get_golden(contours, 6)
+        val = get_golden(contours, idx)
+        child_count = len(t.get_node(str(idx)).get_children())
+        # Dirty workaround
+        if val == 8 and child_count == 1:
+            val = 0
+        if val == 0 and child_count == 2:
+            val = 8
+        ans += str(val)
+    return int(ans)
 #    start = time.clock()
 #    my_dict = get_golden(contours, index)
 #    end = time.clock()
@@ -429,8 +424,13 @@ def extact_contours(file_name):
     # print ith contour's second point
     #print((contours[0][0][0][1]))
 #return my_dict
-    cv2.waitKey()
-if len(sys.argv) < 2:
-    print("Usage python golden.py filename")
-    sys.exit()
-extact_contours(sys.argv[1])
+#    cv2.waitKey()
+
+def extact_contours(file_name):
+    im = cv2.imread(file_name)
+    identify_number(im)
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage python golden.py filename")
+        sys.exit()
+    extact_contours(sys.argv[1])
