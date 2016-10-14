@@ -3,6 +3,18 @@ import cv2
 from time import gmtime, strftime
 import golden
 
+import sqlite3 as db
+import db_util
+
+try:
+    con = db.connect('curve.db')
+    print('Connect to curve.db')
+    cur =con.cursor()
+except db.Error, e:
+    if con:
+        con.rollback()
+        sys.exit(1)
+
 cam = cv2.VideoCapture(0)
 def cam_setup(cam):
     '''
@@ -40,7 +52,7 @@ while True:
     cam_setup(cam)
     s, im = cam.read()
     cv2.imshow("Test", im)
-    key = cv2.waitKey(500)
+    key = cv2.waitKey(1000)
     if key == 27:
         break
     if key == 1048603:
@@ -51,8 +63,17 @@ while True:
     val = golden.identify_number(im)
     diff = abs(last_val - val)
     #print("val: {}, diff: {}".format(val, diff))
-    if last_val != -1 and diff < 15:
+    if last_val != -1 and diff < 30:
         print(val)
+        db_util.insert_data(con, cur, 1, float(val))
     last_val = val
+if cur:
+    cur.close()
+if con:
+    con.close()
+
+    
 cv2.destroyAllWindows()
 cv2.VideoCapture(0).release()
+
+
