@@ -26,8 +26,10 @@ def create_db(dbName):
 
 def insert(cur, m_id, value):
 	data = [m_id, value]
-	cur.execute("insert into a_curve values (?,?,datetime('now'))", data)
+	cur.execute("insert into a_curve values (?,?,datetime('now', 'localtime'))", data)
 
 def insert_data(con, cur, m_id, value):
     insert(cur, m_id, value)
     con.commit()
+if __name__ == "__main__":
+    create_db(dbName)
