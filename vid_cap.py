@@ -64,16 +64,15 @@ while True:
         print(val)
         db_util.insert_data(con, cur, 1, float(val))
     # unreasonable results, dump for debug
-    if val > 80:
+    if diff > 8 or val > 80:
         current_time = strftime("%Y-%m-%d_%H-%M-%S")
-        output_file_name = 'img_{}.jpg'.format(current_time)
+        output_file_name = 'bug_{}_{}.jpg'.format(current_time, val)
         cv2.imwrite(output_file_name, im, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
     last_val = val
 if cur:
     cur.close()
 if con:
     con.close()
-
     
 cv2.destroyAllWindows()
 cv2.VideoCapture(0).release()
