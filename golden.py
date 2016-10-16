@@ -208,9 +208,9 @@ def get_shape_angle(partial_fds):
     #print("pos ({}, {})".format(pos_x, pos_y))
     final_angle = math.atan2(pos_y, pos_x) * (180.0 / math.pi)
     return final_angle
-
-def get_golden(contours, index):
-    list_of_coord = []
+def get_contour_point_count(contours, index):
+    return int(len(contours[index]))
+def get_partial_fds(contours, index):
     x_list = []
     y_list = []
     for contour_i in contours[index]:
@@ -220,15 +220,20 @@ def get_golden(contours, index):
         x_list.append(x)
         y_list.append(y)
     original_points = zip(x_list, y_list)
-
-    start1 = time.clock()    
+    #print(" original_points = {}".format(len(original_points)))
+    #start1 = time.clock()    
     fds = fu.get_fd(original_points)
-    end1 = time.clock()
+    #end1 = time.clock()
     fds_half_count = (len(fds) - 21) / 2
     #print("@@@@@ {} @@@@@@@@ {}".format(fds_half_count, len(fds)))	
-    #partial_fds = take_normalized_partial_fd(fds, 21) 
     tmp_fds = take_normalized_partial_fd(fds, 21) 
-    partial_fds = make_start_point_invariant(tmp_fds)
+    return  make_start_point_invariant(tmp_fds)
+'''
+    make sure contours point >= 21
+'''
+
+def get_golden(contours, index):
+    partial_fds = get_partial_fds(contours, index) 
     # debug get best match
     #print("Best match for index: {} is {}".format(index, get_best_match(partial_fds)))
     return (get_best_match(partial_fds))
@@ -360,9 +365,40 @@ def get_best_match(fds):
     # Dirty workaround, I found that 6 may identify as 0
     if best_idx == 0 and best_mag_idx == 6:
         best_idx = 6
+    # workaround
+    if best_idx == 1 and best_mag_idx == 2:
+        best_idx = 2
+    # workaround
+    if best_idx == 8 and best_mag_idx == 4:
+        best_idx = 4
     return best_idx
+def get_children_count(t, contours, idx):
+    children = t.get_node(str(idx)).get_children()
+    child_count = 0
+    for n in children:
+        contour_points = get_contour_point_count(contours, int(n))
+        if contour_points < 21:
+            continue
+        partial_fds = get_partial_fds(contours, int(n))
+        d = distance(partial_fds[11])
+        child_count += 1
+    return child_count
 def identify_number(im):
-    imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    im_hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
+   
+    lower_red1 = np.array([0, 50, 50])
+    upper_red1 = np.array([10, 255, 255])
+    mask1 = cv2.inRange(im_hsv, lower_red1, upper_red1)
+    
+    lower_red2 = np.array([160, 50, 50])
+    upper_red2 = np.array([180, 255, 255])
+    mask2 = cv2.inRange(im_hsv, lower_red2, upper_red2)
+
+    mask = mask1 + mask2 
+    mask_im = cv2.bitwise_and(im, im, mask = mask)
+
+    imgray = cv2.cvtColor(mask_im, cv2.COLOR_BGR2GRAY)
+    #imgray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     imgblur = cv2.GaussianBlur(imgray, (3, 3), 0)
     ret, thres = cv2.threshold(imgblur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     kernel = np.ones((3, 3), np.uint8)
@@ -410,12 +446,15 @@ def identify_number(im):
     #print(row_sorted_order_list)
     row_idx_list = map(lambda x: int_list[x], row_sorted_order_list)
     #print(row_idx_list)
+    if len(row_idx_list) != 3:
+        return
     #print('contours[0][0]:' + str(len(contours[0][0])))
     #print('contours[0][0][0]:' + str(len(contours[0][0][0])))
     ans = ""
     for idx in row_idx_list:
         val = get_golden(contours, idx)
-        child_count = len(t.get_node(str(idx)).get_children())
+        #child_count = len(t.get_node(str(idx)).get_children())
+        child_count = get_children_count(t, contours, idx)
         # Dirty workaround
         if val == 8 and child_count == 1:
             val = 0
@@ -438,7 +477,8 @@ def identify_number(im):
 
 def extact_contours(file_name):
     im = cv2.imread(file_name)
-    identify_number(im)
+    v = identify_number(im)
+    print("Value: {}".format(v))
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage python golden.py filename")

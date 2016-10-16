@@ -58,6 +58,8 @@ while True:
     if key == 1048603:
         break
     val = golden.identify_number(im)
+    if val == None:
+        continue
     diff = abs(last_val - val)
     #print("val: {}, diff: {}".format(val, diff))
     if last_val != -1 and diff < 30:
@@ -75,6 +77,6 @@ if con:
     con.close()
     
 cv2.destroyAllWindows()
-cv2.VideoCapture(0).release()
+cam.release()
 
 
