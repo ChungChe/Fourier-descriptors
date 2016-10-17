@@ -38,9 +38,9 @@ def delete_unreasonable_data(dbName):
         if con:
             con.close()
     
-def insert(cur, m_id, value):
+def insert(cur, m_id, value, second_diff = 0):
 	data = [m_id, value]
-	cur.execute("insert into a_curve values (?,?,datetime('now', 'localtime'))", data)
+	cur.execute("insert into a_curve values (?,?,datetime('now', 'localtime', '+{} seconds'))".format(second_diff), data)
 
 def insert_data(con, cur, m_id, value):
     insert(cur, m_id, value)
