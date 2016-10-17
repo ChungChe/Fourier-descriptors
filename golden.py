@@ -368,6 +368,28 @@ def get_best_match(fds):
     # workaround
     if best_idx == 1 and best_mag_idx == 2:
         best_idx = 2
+    # workaround for 5 and 2
+    if best_mag_idx == 2:
+        match2 = get_match_value(fds, golden_val.fd[2])
+        match5 = get_match_value(fds, golden_val.fd[5])
+        mag2 = get_mag_value(fds, golden_val.fd[2])
+        mag5 = get_mag_value(fds, golden_val.fd[5])
+        if abs(mag2 - mag5) < 0.002:
+            if match5 < match2:
+                best_idx = 5
+            else:
+                best_idx = 2
+    elif best_mag_idx == 5:
+        match2 = get_match_value(fds, golden_val.fd[2])
+        match5 = get_match_value(fds, golden_val.fd[5])
+        mag2 = get_mag_value(fds, golden_val.fd[2])
+        mag5 = get_mag_value(fds, golden_val.fd[5])
+        print("abs = {} 2: {}, 5: {}".format(abs(mag2 - mag5), match2, match5))
+        if abs(mag2 - mag5) < 0.002:
+            if match5 > match2:
+                best_idx = 2
+            else:
+                best_idx = 5
     # workaround
     if best_idx == 8 and best_mag_idx == 4:
         best_idx = 4
@@ -446,6 +468,11 @@ def identify_number(im):
     #print(row_sorted_order_list)
     row_idx_list = map(lambda x: int_list[x], row_sorted_order_list)
     #print(row_idx_list)
+    # remove noise dots
+    for idx in row_idx_list:
+        contour_points = get_contour_point_count(contours, int(idx))
+        if contour_points < 50:
+            row_idx_list.remove(idx)
     if len(row_idx_list) != 3:
         return
     #print('contours[0][0]:' + str(len(contours[0][0])))

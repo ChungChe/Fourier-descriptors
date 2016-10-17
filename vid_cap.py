@@ -58,7 +58,7 @@ while True:
     if key == 1048603:
         break
     val = golden.identify_number(im)
-    if val == None or (val < 90 and val >= 60):
+    if val == None:
         current_time = strftime("%Y-%m-%d_%H-%M-%S")
         output_file_name = 'bug_{}_{}.jpg'.format(current_time, val)
         cv2.imwrite(output_file_name, im, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
@@ -72,6 +72,10 @@ while True:
         print(val)
         if last_val == 0 and val != 0:
             db_util.insert_data(con, cur, 0, 0, -1) 
+        if val < 90 and val >= 60:
+            current_time = strftime("%Y-%m-%d_%H-%M-%S")
+            output_file_name = 'bug_{}_{}.jpg'.format(current_time, val)
+            cv2.imwrite(output_file_name, im, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
         db_util.insert_data(con, cur, 1, float(val))
     # unreasonable results, dump for debug
     if diff > 8 or val > 80:
