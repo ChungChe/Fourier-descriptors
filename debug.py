@@ -464,12 +464,17 @@ def identify_number(im):
     row_idx_list = map(lambda x: int_list[x], row_sorted_order_list)
     
     print(row_idx_list)
+    remove_lst = []
     for idx in row_idx_list:
         contour_points = get_contour_point_count(contours, int(idx))
+        print("pt[{}] = {}".format(idx, contour_points))
         if contour_points < 50:
-            row_idx_list.remove(idx)
-    if len(row_idx_list) != 3:
-        return
+            remove_lst.append(idx)
+    for idx in remove_lst:
+        row_idx_list.remove(idx)
+    print(row_idx_list)
+#if len(row_idx_list) != 3:
+#        return
     ans = ""
     for idx in row_idx_list:
         val = get_golden(contours, idx)

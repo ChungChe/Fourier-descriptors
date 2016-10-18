@@ -469,10 +469,14 @@ def identify_number(im):
     row_idx_list = map(lambda x: int_list[x], row_sorted_order_list)
     #print(row_idx_list)
     # remove noise dots
+    remove_lst = []
     for idx in row_idx_list:
         contour_points = get_contour_point_count(contours, int(idx))
         if contour_points < 50:
-            row_idx_list.remove(idx)
+            remove_lst.append(idx)
+    for idx in remove_lst:
+        row_idx_list.remove(idx)
+    
     if len(row_idx_list) != 3:
         return
     #print('contours[0][0]:' + str(len(contours[0][0])))
