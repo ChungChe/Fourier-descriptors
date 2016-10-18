@@ -336,6 +336,28 @@ def get_match_value(fds1, fds2):
         y_delta = fds1[i][1] - fds2[i][1]
         sum += x_delta * x_delta + y_delta * y_delta
     return math.sqrt(sum)
+def get_best_idx_for_2569(fds, val1, val2, best_mag_idx, best_idx):
+    if best_mag_idx == val1:
+        match2 = get_match_value(fds, golden_val.fd[val1])
+        match5 = get_match_value(fds, golden_val.fd[val2])
+        mag2 = get_mag_value(fds, golden_val.fd[val1])
+        mag5 = get_mag_value(fds, golden_val.fd[val2])
+        if abs(mag2 - mag5) < 0.002:
+            if match5 < match2:
+                best_idx = val2
+            else:
+                best_idx = val1
+    elif best_mag_idx == val2:
+        match2 = get_match_value(fds, golden_val.fd[val1])
+        match5 = get_match_value(fds, golden_val.fd[val2])
+        mag2 = get_mag_value(fds, golden_val.fd[val1])
+        mag5 = get_mag_value(fds, golden_val.fd[val2])
+        if abs(mag2 - mag5) < 0.002:
+            if match5 > match2:
+                best_idx = val1
+            else:
+                best_idx = val2
+    return best_idx
     
 def get_best_match(fds):
     min_val = 9999.9
@@ -362,29 +384,10 @@ def get_best_match(fds):
     # workaround
     if best_idx == 1 and best_mag_idx == 2:
         best_idx = 2
-    # 5 and 2
-    if best_mag_idx == 2:
-        match2 = get_match_value(fds, golden_val.fd[2])
-        match5 = get_match_value(fds, golden_val.fd[5])
-        mag2 = get_mag_value(fds, golden_val.fd[2])
-        mag5 = get_mag_value(fds, golden_val.fd[5])
-        if abs(mag2 - mag5) < 0.002:
-            if match5 < match2:
-                best_idx = 5
-            else:
-                best_idx = 2
-    elif best_mag_idx == 5:
-        match2 = get_match_value(fds, golden_val.fd[2])
-        match5 = get_match_value(fds, golden_val.fd[5])
-        mag2 = get_mag_value(fds, golden_val.fd[2])
-        mag5 = get_mag_value(fds, golden_val.fd[5])
-        print("abs = {} 2: {}, 5: {}".format(abs(mag2 - mag5), match2, match5))
-        if abs(mag2 - mag5) < 0.002:
-            if match5 > match2:
-                best_idx = 2
-            else:
-                best_idx = 5
-
+    # workaround for 5 and 2
+    best_idx = get_best_idx_for_2569(fds, 2, 5, best_mag_idx, best_idx)
+    # workaround for 6 and 9
+    best_idx = get_best_idx_for_2569(fds, 6, 9, best_mag_idx, best_idx)
     # workaround
     if best_idx == 8 and best_mag_idx == 4:
         best_idx = 4
