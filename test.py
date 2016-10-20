@@ -7,15 +7,21 @@ def compare():
     print(file_path)
     err_count = 0
     for file_name in sorted(os.listdir(file_path)):
-        golden_val = int(file_name.split('.')[0].split('_')[0])
-        print("checking file_name: {}".format(file_name))
         full_file_name = "{}/{}".format(file_path, file_name)
         if not os.path.exists(full_file_name):
             print("{} not exists".format(full_file_name))
             continue
+        print("checking file_name: {}".format(file_name))
         v = extact_contours(full_file_name)
-        
-        if int(v) != golden_val:
+        if file_name.split('.')[0].split('_')[0] == "None":
+            if v == None:
+                continue
+            else:
+                print("Value mismatch for {}, value should be {}, not {}".format(file_name, "None", v))
+                err_count += 1
+                continue
+        golden_val = int(file_name.split('.')[0].split('_')[0])
+        if v != None and int(v) != golden_val:
             print("Value mismatch for {}, value should be {}, not {}".format(file_name, golden_val, v))
             err_count += 1
     if err_count == 0:

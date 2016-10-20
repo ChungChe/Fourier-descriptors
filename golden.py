@@ -384,6 +384,11 @@ def get_best_match(fds):
         if mag < mag_min_val:
             mag_min_val = mag;
             best_mag_idx = i
+    # for some abnormal value
+    if best_mag_idx == 6:
+        match6 = get_match_value(fds, golden_val.fd[6])
+        if match6 > 0.96:
+            return -1
 
     # Dirty workaround, I found that 6 may identify as 0
     #if best_idx == 0 and best_mag_idx == 6:
@@ -489,6 +494,8 @@ def identify_number(im):
     ans = ""
     for idx in row_idx_list:
         val = get_golden(contours, idx)
+        if val == -1:
+            return None
         #child_count = len(t.get_node(str(idx)).get_children())
         child_count = get_children_count(t, contours, idx)
         # Dirty workaround
