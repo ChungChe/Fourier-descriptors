@@ -236,14 +236,14 @@ def get_golden(contours, index):
     partial_fds = get_partial_fds(contours, index) 
     # debug get best match
     #print("Best match for index: {} is {}".format(index, get_best_match(partial_fds)))
-    return (get_best_match(partial_fds))
     #gg = get_shape_angle(partial_fds)
     #print("final_angle = {}".format(gg))
+    return (get_best_match(partial_fds))
     
     plus_one_angle = math.atan2(partial_fds[11][1], partial_fds[11][0]) * (180.0 / math.pi)
     minus_one_angle = math.atan2(partial_fds[9][1], partial_fds[9][0]) * (180.0 / math.pi)
-    #shape_angle = (plus_one_angle + minus_one_angle) / 2.0
-    #print("shape_angle = {}".format(shape_angle))
+    shape_angle = (plus_one_angle + minus_one_angle) / 2.0
+    print("shape_angle = {}".format(shape_angle))
     #draw_line_test(partial_fds, str(index))
     '''
     for p in partial_fds:
@@ -370,6 +370,8 @@ def get_best_idx_for_2569(fds, val1, val2, best_mag_idx, best_idx):
 def get_best_match(fds):
     min_val = 9999.9
     best_idx = -1
+    mag_min_val = 9999.9
+    best_mag_idx = -1
     for i in xrange(0, len(golden_val.fd)):
         val = get_match_value(fds, golden_val.fd[i])
         mag = get_mag_value(fds, golden_val.fd[i])
@@ -377,18 +379,16 @@ def get_best_match(fds):
         if val < min_val:
             min_val = val
             best_idx = i
-    best_mag_idx = -1
-    mag_min_val = 9999.9
-    for i in xrange(0, len(golden_val.fd)):
-        mag = get_mag_value(fds, golden_val.fd[i])
         if mag < mag_min_val:
             mag_min_val = mag;
             best_mag_idx = i
+    #print("==============================")
+    #print("best_idx = {}, best_mag_idx = {}".format(best_idx, best_mag_idx))
     # for some abnormal value
-    if best_mag_idx == 6:
-        match6 = get_match_value(fds, golden_val.fd[6])
-        if match6 > 0.96:
-            return -1
+    #if best_mag_idx == 6:
+    #    match6 = get_match_value(fds, golden_val.fd[6])
+    #    if match6 > 0.96:
+    #            return -1
 
     # Dirty workaround, I found that 6 may identify as 0
     #if best_idx == 0 and best_mag_idx == 6:
@@ -403,6 +403,9 @@ def get_best_match(fds):
     # workaround
     if best_idx == 8 and best_mag_idx == 4:
         best_idx = 4
+    # workaround  5 may identify as 1
+    if best_mag_idx == 5 and best_idx == 1:
+        best_idx = 5;
     return best_idx
 def get_children_count(t, contours, idx):
     children = t.get_node(str(idx)).get_children()
@@ -418,15 +421,16 @@ def get_children_count(t, contours, idx):
 def identify_number(im):
     im_hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
    
-    lower_red1 = np.array([0, 50, 50])
-    upper_red1 = np.array([10, 255, 255])
-    mask1 = cv2.inRange(im_hsv, lower_red1, upper_red1)
+    #lower_red1 = np.array([0, 50, 50])
+    #upper_red1 = np.array([10, 255, 255])
+    #mask1 = cv2.inRange(im_hsv, lower_red1, upper_red1)
     
     lower_red2 = np.array([160, 50, 50])
     upper_red2 = np.array([180, 255, 255])
     mask2 = cv2.inRange(im_hsv, lower_red2, upper_red2)
 
-    mask = mask1 + mask2 
+    #mask = mask1 + mask2 
+    mask = mask2 
     mask_im = cv2.bitwise_and(im, im, mask = mask)
 
     imgray = cv2.cvtColor(mask_im, cv2.COLOR_BGR2GRAY)
@@ -482,7 +486,7 @@ def identify_number(im):
     remove_lst = []
     for idx in row_idx_list:
         contour_points = get_contour_point_count(contours, int(idx))
-        if contour_points < 50:
+        if contour_points < 60:
             remove_lst.append(idx)
     for idx in remove_lst:
         row_idx_list.remove(idx)
